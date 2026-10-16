@@ -24,9 +24,8 @@ public class User
 
     public UserRole Role { get; set; } = UserRole.Member;
 
-    public int MembershipPlanId { get; set; }
-
-    public MembershipPlan MembershipPlan { get; set; } = null!;
+    public int? MembershipPlanId { get; set; }
+    public MembershipPlan? MembershipPlan { get; set; }
 
     public ICollection<Loan> Loans { get; set; } = new List<Loan>();
 }
