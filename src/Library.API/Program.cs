@@ -1,3 +1,5 @@
+using AutoMapper;
+using Library.Application.Mapping;
 using Library.Application.Options;
 using Library.Infrastructure;
 using Library.Infrastructure.Options;
@@ -26,12 +28,22 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddRepositories();
 builder.Services.AddScoped<DbInitializer>();
 
+builder.Services.AddAutoMapper(
+    cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"],
+    typeof(BookProfile).Assembly);
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Fail fast in development if a destination member has no source and was not ignored.
+if (app.Environment.IsDevelopment())
+{
+    app.Services.GetRequiredService<IMapper>().ConfigurationProvider.AssertConfigurationIsValid();
+}
 
 // Apply migrations and seed demo users before the app starts handling requests.
 await using (var scope = app.Services.CreateAsyncScope())
