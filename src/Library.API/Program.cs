@@ -1,4 +1,5 @@
 using Library.Application.Options;
+using Library.Infrastructure;
 using Library.Infrastructure.Options;
 using Library.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Connection string 'Default' is missing. Set it with dotnet user-secrets.");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddRepositories();
 builder.Services.AddScoped<DbInitializer>();
 
 builder.Services.AddControllers();
