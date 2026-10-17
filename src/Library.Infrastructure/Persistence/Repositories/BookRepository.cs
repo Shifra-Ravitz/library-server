@@ -83,6 +83,14 @@ public sealed class BookRepository : IBookRepository
     public async Task<Book?> GetForUpdateAsync(int id, CancellationToken ct)
     {
         return await _db.Books
+            .FirstOrDefaultAsync(b => b.Id == id, ct);
+    }
+
+    public async Task<Book?> GetWithCategoriesForUpdateAsync(int id, CancellationToken ct)
+    {
+        // The current join rows must be tracked: otherwise EF would INSERT links that already exist
+        // and would never DELETE the links of categories that were removed.
+        return await _db.Books
             .Include(b => b.Categories)
             .FirstOrDefaultAsync(b => b.Id == id, ct);
     }

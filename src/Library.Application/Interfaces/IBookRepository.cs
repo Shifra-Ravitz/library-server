@@ -21,9 +21,14 @@ public interface IBookRepository
     Task<Book?> GetByIdAsync(int id, CancellationToken ct);
 
     /// <summary>
-    /// Tracked. Includes Categories.
+    /// Tracked. No navigations; used when only the book row itself is needed (e.g. adding a copy).
     /// </summary>
     Task<Book?> GetForUpdateAsync(int id, CancellationToken ct);
+
+    /// <summary>
+    /// Tracked. Includes Categories, so an update can remove dropped categories and skip existing ones.
+    /// </summary>
+    Task<Book?> GetWithCategoriesForUpdateAsync(int id, CancellationToken ct);
 
     /// <summary>
     /// Tracked. Includes all Copies (also Retired), for the soft delete.

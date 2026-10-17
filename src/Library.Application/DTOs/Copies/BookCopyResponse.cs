@@ -7,7 +7,7 @@ public sealed class BookCopyResponse
     public int BookId { get; init; }
 
     /// <summary>
-    /// Null when Book was not loaded (e.g. IBookCopyRepository.GetByBookIdAsync).
+    /// Flattened from Book.Title. Every IBookCopyRepository read includes Book; null only if it was not loaded.
     /// </summary>
     public string? BookTitle { get; init; }
 

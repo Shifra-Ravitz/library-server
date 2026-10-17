@@ -26,6 +26,7 @@ public sealed class BookCopyRepository : IBookCopyRepository
     {
         return await _db.BookCopies
             .AsNoTracking()
+            .Include(c => c.Book)
             .Where(c => c.BookId == bookId && c.Status != CopyStatus.Retired)
             .OrderBy(c => c.Id)
             .ToListAsync(ct);

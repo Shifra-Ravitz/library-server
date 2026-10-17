@@ -141,7 +141,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", (string)null);
 
                     b.HasData(
                         new
@@ -251,7 +251,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.ToTable("BookCopies");
+                    b.ToTable("BookCopies", (string)null);
 
                     b.HasData(
                         new
@@ -450,7 +450,7 @@ namespace Library.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -509,7 +509,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Loans");
+                    b.ToTable("Loans", (string)null);
                 });
 
             modelBuilder.Entity("Library.Domain.Entities.MembershipPlan", b =>
@@ -535,7 +535,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MembershipPlans");
+                    b.ToTable("MembershipPlans", (string)null);
 
                     b.HasData(
                         new
@@ -599,7 +599,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("MembershipPlanId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("BookCategory", b =>

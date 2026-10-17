@@ -13,7 +13,7 @@ public interface IBookCopyRepository
     Task<BookCopy?> GetByIdAsync(int id, CancellationToken ct);
 
     /// <summary>
-    /// Read-only. The non-Retired copies of a book, ordered by Id.
+    /// Read-only. The non-Retired copies of a book, ordered by Id. Includes Book.
     /// </summary>
     Task<IReadOnlyList<BookCopy>> GetByBookIdAsync(int bookId, CancellationToken ct);
 
