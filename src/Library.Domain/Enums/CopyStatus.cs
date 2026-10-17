@@ -6,5 +6,10 @@ namespace Library.Domain.Enums;
 public enum CopyStatus
 {
     Available = 0,
-    Loaned = 1
+    Loaned = 1,
+
+    /// <summary>
+    /// A copy taken out of circulation.
+    /// </summary>
+    Retired = 2
 }

@@ -18,6 +18,11 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
             .IsRequired()
             .HasMaxLength(150);
 
+        // Soft delete. No global query filter: repositories filter explicitly,
+        // because loan history must still show deleted books.
+        builder.Property(b => b.IsDeleted)
+            .IsRequired();
+
         // Many-to-many with Category through a shared-type join entity.
         // Column names are fixed explicitly because the join table is seeded with HasData.
         builder.HasMany(b => b.Categories)

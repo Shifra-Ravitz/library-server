@@ -14,6 +14,11 @@ public class Book
     public int PublicationYear { get; set; }
 
     /// <summary>
+    /// A logically deleted book; its copies are Retired and cannot be borrowed.
+    /// </summary>
+    public bool IsDeleted { get; set; }
+
+    /// <summary>
     /// Categories of this book (many-to-many, no explicit join entity).
     /// </summary>
     public ICollection<Category> Categories { get; set; } = new List<Category>();
