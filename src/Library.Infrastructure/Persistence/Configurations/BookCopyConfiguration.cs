@@ -1,4 +1,5 @@
 using Library.Domain.Entities;
+using Library.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,6 +10,9 @@ public class BookCopyConfiguration : IEntityTypeConfiguration<BookCopy>
     public void Configure(EntityTypeBuilder<BookCopy> builder)
     {
         builder.HasKey(c => c.Id);
+
+        // Seed rows use explicit Ids 1-25; the identity starts at 100 to avoid duplicate keys.
+        builder.Property(c => c.Id).HasIdentityOptions(startValue: 100);
 
         builder.Property(c => c.Status)
             .IsRequired()
@@ -23,5 +27,7 @@ public class BookCopyConfiguration : IEntityTypeConfiguration<BookCopy>
             .WithMany(b => b.Copies)
             .HasForeignKey(c => c.BookId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasData(SeedData.BookCopies);
     }
 }

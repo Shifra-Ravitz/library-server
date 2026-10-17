@@ -1,4 +1,5 @@
 using Library.Domain.Entities;
+using Library.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +11,9 @@ public class MembershipPlanConfiguration : IEntityTypeConfiguration<MembershipPl
     {
         builder.HasKey(p => p.Id);
 
+        // Seed rows use explicit Ids 1-3; the identity starts at 100 to avoid duplicate keys.
+        builder.Property(p => p.Id).HasIdentityOptions(startValue: 100);
+
         builder.Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(50);
@@ -19,5 +23,7 @@ public class MembershipPlanConfiguration : IEntityTypeConfiguration<MembershipPl
 
         builder.Property(p => p.Price)
             .HasPrecision(10, 2);
+
+        builder.HasData(SeedData.MembershipPlans);
     }
 }

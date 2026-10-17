@@ -1,4 +1,5 @@
 using Library.Domain.Entities;
+using Library.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,6 +10,9 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
     public void Configure(EntityTypeBuilder<Book> builder)
     {
         builder.HasKey(b => b.Id);
+
+        // Seed rows use explicit Ids 1-10; the identity starts at 100 to avoid duplicate keys.
+        builder.Property(b => b.Id).HasIdentityOptions(startValue: 100);
 
         builder.Property(b => b.Title)
             .IsRequired()
@@ -43,6 +47,9 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
                 {
                     join.ToTable("BookCategories");
                     join.HasKey("BookId", "CategoryId");
+                    join.HasData(SeedData.BookCategories);
                 });
+
+        builder.HasData(SeedData.Books);
     }
 }

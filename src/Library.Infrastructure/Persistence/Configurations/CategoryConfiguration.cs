@@ -1,4 +1,5 @@
 using Library.Domain.Entities;
+using Library.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,11 +11,16 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {
         builder.HasKey(c => c.Id);
 
+        // Seed rows use explicit Ids 1-5; the identity starts at 100 to avoid duplicate keys.
+        builder.Property(c => c.Id).HasIdentityOptions(startValue: 100);
+
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(50);
 
         builder.HasIndex(c => c.Name)
             .IsUnique();
+
+        builder.HasData(SeedData.Categories);
     }
 }
