@@ -54,11 +54,14 @@ public sealed class LoanService : ILoanService
         // The client can send any copyId, so a copy of a deleted book must be rejected here explicitly.
         if (copy is null || copy.Status == CopyStatus.Retired || copy.Book.IsDeleted)
         {
+            var reason = copy is null ? "CopyNotFound" : copy.Status == CopyStatus.Retired ? "CopyRetired" : "BookDeleted";
+            LogBorrowRejected(copyId, userId, reason);
             return Error.NotFound("העותק לא נמצא.");
         }
 
         if (copy.Status != CopyStatus.Available)
         {
+            LogBorrowRejected(copyId, userId, "CopyNotAvailable");
             return Error.Conflict("העותק כבר מושאל.");
         }
 
@@ -67,6 +70,7 @@ public sealed class LoanService : ILoanService
 
         if (await _loans.HasOverdueLoanAsync(userId, nowUtc, ct))
         {
+            LogBorrowRejected(copyId, userId, "OverdueLoan");
             return Error.Conflict("יש לך ספר שמועד ההחזרה שלו עבר. יש להחזיר אותו לפני השאלה נוספת.");
         }
 
@@ -76,16 +80,21 @@ public sealed class LoanService : ILoanService
         if (user is null)
         {
             // The token is valid, but its user no longer exists.
+            LogBorrowRejected(copyId, userId, "UserNotFound");
             return Error.Unauthorized("המשתמשת לא נמצאה. יש להתחבר מחדש.");
         }
 
         if (user.MembershipPlan is null)
         {
+            LogBorrowRejected(copyId, userId, "NoMembershipPlan");
             return Error.Forbidden("אין לך מנוי, ולכן אי אפשר לשאול ספרים.");
         }
 
         if (user.ActiveLoansCount >= user.MembershipPlan.MaxConcurrentLoans)
         {
+            _logger.LogInformation(
+                "Borrow of copy {CopyId} by user {UserId} rejected: {Reason} ({ActiveLoans} of {MaxLoans})",
+                copyId, userId, "QuotaReached", user.ActiveLoansCount, user.MembershipPlan.MaxConcurrentLoans);
             return Error.Conflict(string.Format(
                 CultureInfo.InvariantCulture, QuotaReachedMessageFormat, user.MembershipPlan.MaxConcurrentLoans));
         }
@@ -116,6 +125,8 @@ public sealed class LoanService : ILoanService
             return Error.Conflict(BorrowConflictMessage);
         }
 
+        _logger.LogInformation("Loan {LoanId} created: copy {CopyId} borrowed by user {UserId}", loan.Id, copyId, userId);
+
         // Reloaded for display, because the tracked loan has no User (needed for UserName).
         var created = await _loans.GetByIdAsync(loan.Id, ct)
             ?? throw new InvalidOperationException($"Loan {loan.Id} was not found right after it was saved.");
@@ -129,16 +140,19 @@ public sealed class LoanService : ILoanService
         var loan = await _loans.GetForUpdateAsync(loanId, ct);
         if (loan is null)
         {
+            LogReturnRejected(loanId, userId, "LoanNotFound");
             return LoanNotFound();
         }
 
         if (!isLibrarian && loan.UserId != userId)
         {
+            LogReturnRejected(loanId, userId, "NotOwner");
             return Error.Forbidden("אין לך הרשאה להחזיר השאלה של משתמשת אחרת.");
         }
 
         if (loan.ReturnedAtUtc is not null)
         {
+            LogReturnRejected(loanId, userId, "AlreadyReturned");
             return Error.Conflict("ההשאלה כבר הוחזרה.");
         }
 
@@ -170,10 +184,14 @@ public sealed class LoanService : ILoanService
         catch (ConcurrencyConflictException)
         {
             _logger.LogWarning(
-                "Concurrency conflict while returning loan {LoanId} (copy {CopyId}) by user {UserId}",
-                loanId, loan.BookCopyId, userId);
+                "Concurrency conflict while returning loan {LoanId} (copy {CopyId}) of user {UserId} by user {ReturnedByUserId}",
+                loanId, loan.BookCopyId, loan.UserId, userId);
             return Error.Conflict(ReturnConflictMessage);
         }
+
+        _logger.LogInformation(
+            "Loan {LoanId} returned: copy {CopyId} of user {UserId}, by user {ReturnedByUserId}",
+            loan.Id, loan.BookCopyId, loan.UserId, userId);
 
         return Result.Success();
     }
@@ -222,6 +240,13 @@ public sealed class LoanService : ILoanService
 
         return new PagedResult<LoanResponse>(responses, filter.Page, filter.PageSize, totalCount);
     }
+
+    // Expected business outcomes, so Information and not Warning: ids and a fixed reason, never the request itself.
+    private void LogBorrowRejected(int copyId, int userId, string reason) =>
+        _logger.LogInformation("Borrow of copy {CopyId} by user {UserId} rejected: {Reason}", copyId, userId, reason);
+
+    private void LogReturnRejected(int loanId, int userId, string reason) =>
+        _logger.LogInformation("Return of loan {LoanId} by user {UserId} rejected: {Reason}", loanId, userId, reason);
 
     private static Error LoanNotFound() => Error.NotFound("ההשאלה לא נמצאה.");
 }

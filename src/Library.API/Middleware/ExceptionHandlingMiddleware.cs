@@ -88,7 +88,7 @@ public sealed class ExceptionHandlingMiddleware
         var correlationId = context.GetCorrelationId();
         return correlationId is null
             ? null
-            : _logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId });
+            : _logger.BeginScope(new Dictionary<string, object?> { ["CorrelationId"] = correlationId });
     }
 
     private async Task WriteProblemAsync(HttpContext context, int statusCode, string title)

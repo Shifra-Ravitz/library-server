@@ -62,7 +62,12 @@ public sealed class BookService : IBookService
             return BookNotFound(id);
         }
 
-        return _mapper.Map<BookResponse>(book);
+        var response = _mapper.Map<BookResponse>(book);
+
+        // Debug: written in development only (LogSettings:MinLevel and Logging:LogLevel are Info in production).
+        _logger.LogDebug("Book {BookId} has {AvailableCopies} available copies", id, response.AvailableCopiesCount);
+
+        return response;
     }
 
     public async Task<Result<BookResponse>> CreateAsync(CreateBookRequest request, CancellationToken ct)
@@ -116,6 +121,7 @@ public sealed class BookService : IBookService
 
         if (book.Copies.Any(c => c.Status == CopyStatus.Loaned))
         {
+            _logger.LogInformation("Deleting book {BookId} rejected: {Reason}", id, "HasLoanedCopy");
             return Error.Conflict("לא ניתן למחוק ספר שיש לו עותק מושאל כרגע.");
         }
 

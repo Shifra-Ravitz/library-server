@@ -40,7 +40,8 @@ public sealed class CorrelationIdMiddleware
             return Task.CompletedTask;
         });
 
-        using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
+        // A dictionary, not a string: each key becomes a scope property, which nlog.config reads with ${scopeproperty}.
+        using (_logger.BeginScope(new Dictionary<string, object?> { ["CorrelationId"] = correlationId }))
         {
             // Path only: the query string and the body may hold personal data.
             var method = context.Request.Method;

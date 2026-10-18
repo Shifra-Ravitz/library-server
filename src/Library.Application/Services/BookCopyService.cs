@@ -87,6 +87,7 @@ public sealed class BookCopyService : IBookCopyService
 
         if (copy.Status == CopyStatus.Loaned)
         {
+            _logger.LogInformation("Retiring copy {CopyId} rejected: {Reason}", id, "CopyLoaned");
             return Error.Conflict("לא ניתן להוציא משימוש עותק שמושאל כרגע.");
         }
 
