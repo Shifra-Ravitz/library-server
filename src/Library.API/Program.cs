@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using AutoMapper;
+using Library.API.Middleware;
 using Library.Application.Mapping;
 using Library.Application.Options;
 using Library.Infrastructure;
@@ -72,11 +73,31 @@ builder.Services.AddAutoMapper(
     cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"],
     typeof(BookProfile).Assembly);
 
+// Hebrew messages written as-is instead of \uXXXX escapes.
+var jsonEncoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Hebrew);
+
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
-    // Enums as names ("Available"), and Hebrew messages written as-is instead of \uXXXX escapes.
+    // Enums as names ("Available").
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    o.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Hebrew);
+    o.JsonSerializerOptions.Encoder = jsonEncoder;
+});
+
+// The same encoder for JSON written outside MVC: ProblemDetails from the middleware and from UseStatusCodePages.
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Encoder = jsonEncoder);
+
+// Every ProblemDetails gets the correlation id: ToProblem, the automatic 400 of [ApiController],
+// UseStatusCodePages and ExceptionHandlingMiddleware.
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ctx =>
+    {
+        var correlationId = ctx.HttpContext.GetCorrelationId();
+        if (correlationId is not null)
+        {
+            ctx.ProblemDetails.Extensions["correlationId"] = correlationId;
+        }
+    };
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -120,6 +141,14 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 // Configure the HTTP request pipeline.
+
+// First, so it catches exceptions from every middleware after it; the correlation id is read from Items.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<CorrelationIdMiddleware>();
+
+// Writes a ProblemDetails body for an error status that has no body: 401/403 from JwtBearer, 404/405 from routing.
+app.UseStatusCodePages();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -127,6 +156,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// app.UseCors(...) ← שלב 18
 
 // Authentication first: it builds HttpContext.User from the token, which authorization then checks.
 app.UseAuthentication();

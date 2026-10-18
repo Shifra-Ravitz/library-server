@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using Library.API.Filters;
 using Library.Application.Common;
 using Library.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +14,9 @@ namespace Library.API.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-[Produces("application/json")]
+[ProducesJson]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
 public abstract class ApiControllerBase : ControllerBase
 {
     /// <summary>
