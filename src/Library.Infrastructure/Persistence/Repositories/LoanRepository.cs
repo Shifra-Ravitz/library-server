@@ -57,6 +57,11 @@ public sealed class LoanRepository : ILoanRepository
             query = query.Where(l => l.ReturnedAtUtc == null && l.DueAtUtc < filter.NowUtc);
         }
 
+        if (filter.ReturnedOnly)
+        {
+            query = query.Where(l => l.ReturnedAtUtc != null);
+        }
+
         var totalCount = await query.CountAsync(ct);
 
         // Only reference navigations are included, so a single query is fine (no split needed).

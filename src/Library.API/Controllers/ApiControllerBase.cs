@@ -1,4 +1,7 @@
+using System.Globalization;
+using System.Security.Claims;
 using Library.Application.Common;
+using Library.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +17,16 @@ namespace Library.API.Controllers;
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public abstract class ApiControllerBase : ControllerBase
 {
+    /// <summary>
+    /// The id of the signed-in user, from the NameIdentifier claim written by JwtTokenGenerator.
+    /// Only valid on endpoints that require authentication; a missing or invalid claim is a server bug, not a client error.
+    /// </summary>
+    protected int CurrentUserId =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id)
+            ? id
+            : throw new InvalidOperationException("The NameIdentifier claim is missing or is not a valid user id.");
+
+    protected bool IsLibrarian => User.IsInRole(nameof(UserRole.Librarian));
     /// <summary>
     /// Returns an RFC 7807 problem response whose status matches the error type.
     /// </summary>

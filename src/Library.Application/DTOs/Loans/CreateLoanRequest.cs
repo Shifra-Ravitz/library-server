@@ -7,6 +7,6 @@ namespace Library.Application.DTOs.Loans;
 /// </summary>
 public sealed class CreateLoanRequest
 {
-    [Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "יש לבחור עותק.")]
     public int CopyId { get; set; }
 }

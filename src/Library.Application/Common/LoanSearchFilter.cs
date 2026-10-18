@@ -21,6 +21,11 @@ public sealed record LoanSearchFilter
     public bool OverdueOnly { get; init; }
 
     /// <summary>
+    /// Only loans that were already returned.
+    /// </summary>
+    public bool ReturnedOnly { get; init; }
+
+    /// <summary>
     /// The current time (UTC), supplied by the service so the query is deterministic and testable.
     /// </summary>
     public DateTime NowUtc { get; init; }
