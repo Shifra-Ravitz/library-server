@@ -20,9 +20,10 @@ public interface IUserRepository
     Task<bool> EmailExistsAsync(string email, CancellationToken ct);
 
     /// <summary>
-    /// Tracked. Includes MembershipPlan, for the loan quota check.
+    /// Tracked, so ActiveLoansCount can be changed and the original Version goes into the UPDATE's WHERE.
+    /// Includes MembershipPlan, for the loan quota check.
     /// </summary>
-    Task<User?> GetWithPlanForUpdateAsync(int id, CancellationToken ct);
+    Task<User?> GetForUpdateAsync(int id, CancellationToken ct);
 
     void Add(User user);
 }

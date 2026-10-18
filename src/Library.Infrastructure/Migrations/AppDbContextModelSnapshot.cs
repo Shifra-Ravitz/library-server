@@ -141,7 +141,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Books", (string)null);
+                    b.ToTable("Books");
 
                     b.HasData(
                         new
@@ -251,7 +251,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.ToTable("BookCopies", (string)null);
+                    b.ToTable("BookCopies");
 
                     b.HasData(
                         new
@@ -450,7 +450,7 @@ namespace Library.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
 
                     b.HasData(
                         new
@@ -509,7 +509,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Loans", (string)null);
+                    b.ToTable("Loans");
                 });
 
             modelBuilder.Entity("Library.Domain.Entities.MembershipPlan", b =>
@@ -535,7 +535,7 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MembershipPlans", (string)null);
+                    b.ToTable("MembershipPlans");
 
                     b.HasData(
                         new
@@ -569,6 +569,9 @@ namespace Library.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ActiveLoansCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -592,6 +595,10 @@ namespace Library.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -599,7 +606,10 @@ namespace Library.Infrastructure.Migrations
 
                     b.HasIndex("MembershipPlanId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users", t =>
+                        {
+                            t.HasCheckConstraint("CK_Users_ActiveLoansCount_NonNegative", "\"ActiveLoansCount\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("BookCategory", b =>

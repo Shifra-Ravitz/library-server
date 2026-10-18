@@ -33,8 +33,9 @@ public sealed class UserRepository : IUserRepository
         return await _db.Users.AnyAsync(u => u.Email == email, ct);
     }
 
-    public async Task<User?> GetWithPlanForUpdateAsync(int id, CancellationToken ct)
+    public async Task<User?> GetForUpdateAsync(int id, CancellationToken ct)
     {
+        // Tracked: the loan flow changes ActiveLoansCount, and the original Version goes into the UPDATE's WHERE.
         return await _db.Users
             .Include(u => u.MembershipPlan)
             .FirstOrDefaultAsync(u => u.Id == id, ct);
