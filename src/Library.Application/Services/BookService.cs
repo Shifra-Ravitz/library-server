@@ -1,25 +1,36 @@
 using AutoMapper;
 using Library.Application.Common;
+using Library.Application.Common.Exceptions;
 using Library.Application.DTOs.Books;
 using Library.Application.Interfaces;
 using Library.Domain.Entities;
 using Library.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Library.Application.Services;
 
 public sealed class BookService : IBookService
 {
+    private const string DeleteConflictMessage = "הספר עודכן בינתיים (ייתכן שעותק שלו הושאל ברגע זה). נסי שוב.";
+
     private readonly IBookRepository _books;
     private readonly ICategoryRepository _categories;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<BookService> _logger;
 
-    public BookService(IBookRepository books, ICategoryRepository categories, IUnitOfWork unitOfWork, IMapper mapper)
+    public BookService(
+        IBookRepository books,
+        ICategoryRepository categories,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILogger<BookService> logger)
     {
         _books = books;
         _categories = categories;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<PagedResult<BookResponse>> SearchAsync(BookQueryParameters query, CancellationToken ct)
@@ -115,7 +126,18 @@ public sealed class BookService : IBookService
             copy.Status = CopyStatus.Retired;
         }
 
-        await _unitOfWork.SaveChangesAsync(ct);
+        // Retiring the copies updates them with their Version in the WHERE. If one of them was borrowed
+        // after it was read here, that UPDATE matches no row and IsDeleted is rolled back with it.
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            _logger.LogWarning("Concurrency conflict while deleting book {BookId}", id);
+            return Error.Conflict(DeleteConflictMessage);
+        }
+
         return Result.Success();
     }
 

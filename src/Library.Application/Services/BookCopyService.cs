@@ -1,26 +1,37 @@
 using System.Diagnostics.CodeAnalysis;
 using AutoMapper;
 using Library.Application.Common;
+using Library.Application.Common.Exceptions;
 using Library.Application.DTOs.Copies;
 using Library.Application.Interfaces;
 using Library.Domain.Entities;
 using Library.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Library.Application.Services;
 
 public sealed class BookCopyService : IBookCopyService
 {
+    private const string DeleteConflictMessage = "העותק עודכן בינתיים (ייתכן שהושאל ברגע זה). נסי שוב.";
+
     private readonly IBookCopyRepository _copies;
     private readonly IBookRepository _books;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<BookCopyService> _logger;
 
-    public BookCopyService(IBookCopyRepository copies, IBookRepository books, IUnitOfWork unitOfWork, IMapper mapper)
+    public BookCopyService(
+        IBookCopyRepository copies,
+        IBookRepository books,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILogger<BookCopyService> logger)
     {
         _copies = copies;
         _books = books;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<IReadOnlyList<BookCopyResponse>>> GetByBookIdAsync(int bookId, CancellationToken ct)
@@ -82,7 +93,16 @@ public sealed class BookCopyService : IBookCopyService
         // Soft delete: the row stays, so the loan history keeps pointing at it.
         copy.Status = CopyStatus.Retired;
 
-        await _unitOfWork.SaveChangesAsync(ct);
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            _logger.LogWarning("Concurrency conflict while deleting copy {CopyId}", id);
+            return Error.Conflict(DeleteConflictMessage);
+        }
+
         return Result.Success();
     }
 

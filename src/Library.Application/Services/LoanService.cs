@@ -1,34 +1,42 @@
 using AutoMapper;
 using Library.Application.Common;
+using Library.Application.Common.Exceptions;
 using Library.Application.DTOs.Loans;
 using Library.Application.Interfaces;
 using Library.Application.Options;
 using Library.Domain.Entities;
 using Library.Domain.Enums;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Library.Application.Services;
 
 public sealed class LoanService : ILoanService
 {
+    private const string BorrowConflictMessage = "העותק נתפס על ידי משתמשת אחרת. נסי שוב.";
+    private const string ReturnConflictMessage = "ההשאלה עודכנה בינתיים על ידי בקשה אחרת. נסי שוב.";
+
     private readonly ILoanRepository _loans;
     private readonly IBookCopyRepository _copies;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly LoanOptions _options;
+    private readonly ILogger<LoanService> _logger;
 
     public LoanService(
         ILoanRepository loans,
         IBookCopyRepository copies,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IOptions<LoanOptions> options)
+        IOptions<LoanOptions> options,
+        ILogger<LoanService> logger)
     {
         _loans = loans;
         _copies = copies;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _options = options.Value;
+        _logger = logger;
     }
 
     public async Task<Result<LoanResponse>> BorrowAsync(int userId, int copyId, CancellationToken ct)
@@ -67,7 +75,18 @@ public sealed class LoanService : ILoanService
         _loans.Add(loan);
 
         // One save: the new loan and the copy's status change are committed together.
-        await _unitOfWork.SaveChangesAsync(ct);
+        // If another request changed the copy since it was read, the UPDATE matches no row
+        // and the INSERT of the loan is rolled back with it.
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // An expected race, not a bug: no exception in the log, and no second save on this context.
+            _logger.LogWarning("Concurrency conflict while borrowing copy {CopyId} by user {UserId}", copyId, userId);
+            return Error.Conflict(BorrowConflictMessage);
+        }
 
         // Reloaded for display, because the tracked loan has no User (needed for UserName).
         var created = await _loans.GetByIdAsync(loan.Id, ct)
@@ -98,7 +117,19 @@ public sealed class LoanService : ILoanService
         loan.ReturnedAtUtc = DateTime.UtcNow;
         loan.BookCopy.Status = CopyStatus.Available;
 
-        await _unitOfWork.SaveChangesAsync(ct);
+        // Loan has no Version, but the copy does: a second return of the same loan fails on the copy's UPDATE.
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            _logger.LogWarning(
+                "Concurrency conflict while returning loan {LoanId} (copy {CopyId}) by user {UserId}",
+                loanId, loan.BookCopyId, userId);
+            return Error.Conflict(ReturnConflictMessage);
+        }
+
         return Result.Success();
     }
 
