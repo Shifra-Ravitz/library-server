@@ -1,6 +1,7 @@
 using Library.Application.Interfaces;
 using Library.Application.Services;
 using Library.Infrastructure.Persistence.Repositories;
+using Library.Infrastructure.Security;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Library.Infrastructure;
@@ -33,6 +34,20 @@ public static class DependencyInjection
         services.AddScoped<IBookCopyService, BookCopyService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IMembershipPlanService, MembershipPlanService>();
+        services.AddScoped<IAuthService, AuthService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers password hashing and token creation.
+    /// </summary>
+    public static IServiceCollection AddSecurity(this IServiceCollection services)
+    {
+        // Singletons: both are stateless, and their only dependency is IOptions<JwtOptions>, which is itself
+        // a singleton. So no singleton here captures a scoped service (such as AppDbContext).
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
         return services;
     }

@@ -1,6 +1,8 @@
 using Library.Application.Common;
 using Library.Application.DTOs.Books;
 using Library.Application.Interfaces;
+using Library.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.API.Controllers;
@@ -33,6 +35,8 @@ public sealed class BooksController : ApiControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BookResponse>> Create([FromBody] CreateBookRequest request, CancellationToken ct)
@@ -47,6 +51,8 @@ public sealed class BooksController : ApiControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -56,6 +62,8 @@ public sealed class BooksController : ApiControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]

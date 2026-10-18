@@ -1,5 +1,7 @@
 using Library.Application.DTOs.Categories;
 using Library.Application.Interfaces;
+using Library.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.API.Controllers;
@@ -31,6 +33,8 @@ public sealed class CategoriesController : ApiControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -46,6 +50,8 @@ public sealed class CategoriesController : ApiControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -56,6 +62,8 @@ public sealed class CategoriesController : ApiControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete([FromRoute] int id, CancellationToken ct)

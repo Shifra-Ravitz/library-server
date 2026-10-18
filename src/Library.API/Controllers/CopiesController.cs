@@ -1,5 +1,7 @@
 using Library.Application.DTOs.Copies;
 using Library.Application.Interfaces;
+using Library.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.API.Controllers;
@@ -27,6 +29,8 @@ public sealed class CopiesController : ApiControllerBase
     }
 
     [HttpPost("books/{bookId:int}/copies")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(BookCopyResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BookCopyResponse>> Create([FromRoute] int bookId, CancellationToken ct)
@@ -50,6 +54,8 @@ public sealed class CopiesController : ApiControllerBase
     }
 
     [HttpDelete("copies/{id:int}")]
+    [Authorize(Roles = nameof(UserRole.Librarian))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
