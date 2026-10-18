@@ -1,4 +1,5 @@
 using Library.Application.Interfaces;
+using Library.Application.Services;
 using Library.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +20,19 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ILoanRepository, LoanRepository>();
         services.AddScoped<IMembershipPlanRepository, MembershipPlanRepository>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the application services. Scoped, to match the repositories they depend on.
+    /// </summary>
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IBookCopyService, BookCopyService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IMembershipPlanService, MembershipPlanService>();
 
         return services;
     }

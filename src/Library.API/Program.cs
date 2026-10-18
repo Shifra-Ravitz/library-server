@@ -1,3 +1,6 @@
+using System.Text.Encodings.Web;
+using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using AutoMapper;
 using Library.Application.Mapping;
 using Library.Application.Options;
@@ -5,6 +8,7 @@ using Library.Infrastructure;
 using Library.Infrastructure.Options;
 using Library.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,16 +30,25 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddRepositories();
+builder.Services.AddApplicationServices();
 builder.Services.AddScoped<DbInitializer>();
 
 builder.Services.AddAutoMapper(
     cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"],
     typeof(BookProfile).Assembly);
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    // Enums as names ("Available"), and Hebrew messages written as-is instead of \uXXXX escapes.
+    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    o.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Hebrew);
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Library API", Version = "v1" });
+});
 
 var app = builder.Build();
 
