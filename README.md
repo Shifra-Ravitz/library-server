@@ -103,8 +103,8 @@ dotnet test tests\Library.Tests\Library.Tests.csproj --filter "Category!=Integra
 ## 6. קישורים
 
 - הקליינט (React + Vite): https://github.com/Shifra-Ravitz/library-client
-- שרת ב-Render: יתווסף לאחר ההעלאה
-- קליינט ב-Render: יתווסף לאחר ההעלאה
+- שרת ב-Render: יתווסף לאחר ההעלאהhttps://library-api-gcmk.onrender.com/swagger
+- קליינט ב-Render: יתווסף לאחר ההעלאהhttps://library-client-wli6.onrender.com
 
 ### העלאה ל-Render
 
