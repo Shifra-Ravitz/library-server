@@ -57,7 +57,7 @@ dotnet run --project src\Library.API
 
 ה-migrations וה-seed רצים אוטומטית בעליית השרת (`DbInitializer.InitializeAsync`, שנקרא מ-`Program.cs`), ואין צורך בשום פעולה ידנית בבסיס הנתונים.
 
-**Swagger:** `http://localhost:5150/swagger` (בפרופיל `https`: `https://localhost:7050/swagger`). Swagger זמין רק בסביבת Development, שמוגדרת ב-`launchSettings.json`.
+**Swagger:** `http://localhost:5150/swagger` (בפרופיל `https`: `https://localhost:7050/swagger`). Swagger פעיל בכל הסביבות, כולל Production ב-Render, לצורך הדגמה.
 
 **שימוש ב-Authorize:**
 1. מריצים `POST /api/auth/login` עם אימייל וסיסמה של אחד ממשתמשי הדמו (סעיף 5).
@@ -105,6 +105,20 @@ dotnet test tests\Library.Tests\Library.Tests.csproj --filter "Category!=Integra
 - הקליינט (React + Vite): https://github.com/Shifra-Ravitz/library-client
 - שרת ב-Render: יתווסף לאחר ההעלאה
 - קליינט ב-Render: יתווסף לאחר ההעלאה
+
+### העלאה ל-Render
+
+ב-Render מוגדרים שלושה שירותים: PostgreSQL לבסיס הנתונים, Web Service מסוג Docker לשרת, שנבנה לפי ה-`Dockerfile` שבתיקייה הראשית של ה-repository, ו-Static Site לקליינט. ה-migrations וה-seed רצים אוטומטית בעליית השרת, כמו בהרצה מקומית, ואין צורך להריץ שום דבר ידנית מול בסיס הנתונים.
+
+משתני הסביבה של ה-Web Service. הערכים מוגדרים רק ב-Render, ולא נשמרים ב-repository או ב-`Dockerfile`:
+
+| משתנה | ערך |
+|---|---|
+| `ConnectionStrings__Default` | חובה. בפורמט Npgsql: `Host=<HOST>;Port=5432;Database=<DB>;Username=<USER>;Password=<PASSWORD>` |
+| `Jwt__Key` | חובה. מפתח אקראי של 32 תווים לפחות |
+| `Cors__AllowedOrigins__0` | הכתובת של הקליינט ב-Render, בלי `/` בסוף |
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+| `AutoMapper__LicenseKey` | לא חובה |
 
 ## 7. מבנה הפרויקטים
 

@@ -11,6 +11,7 @@ using Library.Infrastructure;
 using Library.Infrastructure.Options;
 using Library.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -137,6 +138,15 @@ try
         };
     });
 
+    // Render מסיים את ה-HTTPS ומעביר לשרת HTTP רגיל. בלי הכותרות X-Forwarded-* הבקשה נראית כ-http,
+    // וה-Location של 201 היה מתחיל ב-http. ה-proxy של Render לא בכתובת קבועה, לכן מנקים את הרשימות.
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -184,6 +194,9 @@ try
 
     // Configure the HTTP request pipeline.
 
+    // ראשון: מתקן את ה-scheme ואת כתובת ה-IP לפי ה-proxy לפני שכל middleware אחר קורא אותם.
+    app.UseForwardedHeaders();
+
     // First, so it catches exceptions from every middleware after it; the correlation id is read from Items.
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseMiddleware<CorrelationIdMiddleware>();
@@ -191,11 +204,9 @@ try
     // Writes a ProblemDetails body for an error status that has no body: 401/403 from JwtBearer, 404/405 from routing.
     app.UseStatusCodePages();
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    // Swagger פעיל בכל הסביבות, גם ב-Production, לצורך הדגמה.
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseHttpsRedirection();
 
