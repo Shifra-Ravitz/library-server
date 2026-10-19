@@ -11,7 +11,7 @@ namespace Library.Application.Services;
 
 public sealed class BookService : IBookService
 {
-    private const string DeleteConflictMessage = "הספר עודכן בינתיים (ייתכן שעותק שלו הושאל ברגע זה). נסי שוב.";
+    private const string DeleteConflictMessage = "הספר עודכן בינתיים (ייתכן שעותק שלו הושאל ברגע זה). נסה שוב.";
 
     private readonly IBookRepository _books;
     private readonly ICategoryRepository _categories;

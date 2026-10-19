@@ -46,9 +46,9 @@ $MemberAEmail = 'member1@library.local'
 $MemberBEmail = 'member2@library.local'
 
 # Messages returned by the services. The concurrency ones mean the Version path was taken.
-$MsgBorrowConcurrency = 'העותק נתפס על ידי משתמשת אחרת, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסי שוב.'
-$MsgReturnConcurrency = 'ההשאלה עודכנה בינתיים על ידי בקשה אחרת. נסי שוב.'
-$MsgBookDeleteConcurrency = 'הספר עודכן בינתיים (ייתכן שעותק שלו הושאל ברגע זה). נסי שוב.'
+$MsgBorrowConcurrency = 'העותק נתפס על ידי משתמש אחר, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסה שוב.'
+$MsgReturnConcurrency = 'ההשאלה עודכנה בינתיים על ידי בקשה אחרת. נסה שוב.'
+$MsgBookDeleteConcurrency = 'הספר עודכן בינתיים (ייתכן שעותק שלו הושאל ברגע זה). נסה שוב.'
 $MsgCopyAlreadyLoaned = 'העותק כבר מושאל.'
 $MsgLoanAlreadyReturned = 'ההשאלה כבר הוחזרה.'
 $MsgBookHasLoanedCopy = 'לא ניתן למחוק ספר שיש לו עותק מושאל כרגע.'

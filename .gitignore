@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 *.swp
 
 stage*-notes.md
+
+# Personal reviews and summaries
+scripts/*-review.md

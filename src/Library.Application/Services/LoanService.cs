@@ -15,10 +15,10 @@ namespace Library.Application.Services;
 public sealed class LoanService : ILoanService
 {
     private const string BorrowConflictMessage =
-        "העותק נתפס על ידי משתמשת אחרת, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסי שוב.";
-    private const string ReturnConflictMessage = "ההשאלה עודכנה בינתיים על ידי בקשה אחרת. נסי שוב.";
+        "העותק נתפס על ידי משתמש אחר, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסה שוב.";
+    private const string ReturnConflictMessage = "ההשאלה עודכנה בינתיים על ידי בקשה אחרת. נסה שוב.";
     private const string QuotaReachedMessageFormat =
-        "הגעת למכסת ההשאלות של המנוי שלך (עד {0} ספרים בו-זמנית). החזירי ספר כדי לשאול ספר נוסף.";
+        "הגעת למכסת ההשאלות של המנוי שלך (עד {0} ספרים בו-זמנית). החזר ספר כדי לשאול ספר נוסף.";
 
     private readonly ILoanRepository _loans;
     private readonly IBookCopyRepository _copies;
@@ -81,7 +81,7 @@ public sealed class LoanService : ILoanService
         {
             // The token is valid, but its user no longer exists.
             LogBorrowRejected(copyId, userId, "UserNotFound");
-            return Error.Unauthorized("המשתמשת לא נמצאה. יש להתחבר מחדש.");
+            return Error.Unauthorized("המשתמש לא נמצא. יש להתחבר מחדש.");
         }
 
         if (user.MembershipPlan is null)
@@ -147,7 +147,7 @@ public sealed class LoanService : ILoanService
         if (!isLibrarian && loan.UserId != userId)
         {
             LogReturnRejected(loanId, userId, "NotOwner");
-            return Error.Forbidden("אין לך הרשאה להחזיר השאלה של משתמשת אחרת.");
+            return Error.Forbidden("אין לך הרשאה להחזיר השאלה של משתמש אחר.");
         }
 
         if (loan.ReturnedAtUtc is not null)

@@ -43,8 +43,8 @@ $Password = 'Demo123!'
 $LibrarianEmail = 'librarian@library.local'
 
 # Messages returned by LoanService. The concurrency one means the user's Version path was taken.
-$MsgBorrowConcurrency = 'העותק נתפס על ידי משתמשת אחרת, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסי שוב.'
-$MsgQuotaReachedFormat = 'הגעת למכסת ההשאלות של המנוי שלך (עד {0} ספרים בו-זמנית). החזירי ספר כדי לשאול ספר נוסף.'
+$MsgBorrowConcurrency = 'העותק נתפס על ידי משתמש אחר, או שנשלחה במקביל בקשת השאלה נוספת מהחשבון שלך. נסה שוב.'
+$MsgQuotaReachedFormat = 'הגעת למכסת ההשאלות של המנוי שלך (עד {0} ספרים בו-זמנית). החזר ספר כדי לשאול ספר נוסף.'
 $MsgQuotaReached = $null   # set once the plan is known
 
 $Prefix = 'smoke13-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')

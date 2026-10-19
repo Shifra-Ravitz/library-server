@@ -147,7 +147,7 @@ try
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",
             BearerFormat = "JWT",
-            Description = "הדביקי רק את ה-token, בלי המילה Bearer.",
+            Description = "הדבק רק את ה-token, בלי המילה Bearer.",
         });
 
         c.AddSecurityRequirement(new OpenApiSecurityRequirement

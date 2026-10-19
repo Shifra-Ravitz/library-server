@@ -12,7 +12,7 @@ namespace Library.Application.Services;
 
 public sealed class BookCopyService : IBookCopyService
 {
-    private const string DeleteConflictMessage = "העותק עודכן בינתיים (ייתכן שהושאל ברגע זה). נסי שוב.";
+    private const string DeleteConflictMessage = "העותק עודכן בינתיים (ייתכן שהושאל ברגע זה). נסה שוב.";
 
     private readonly IBookCopyRepository _copies;
     private readonly IBookRepository _books;
