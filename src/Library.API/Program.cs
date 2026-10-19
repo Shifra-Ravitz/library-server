@@ -22,6 +22,8 @@ using NLog.Web;
 // GetCurrentClassLogger on LogFactory: the ISetupBuilder extension of the same name needs using NLog.
 var bootLogger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().LogFactory.GetCurrentClassLogger();
 
+const string ClientCorsPolicy = "LibraryClient";
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
@@ -83,6 +85,27 @@ try
 
     builder.Services.AddAuthorization();
 
+    // Browser clients (the React app) that may call the API from another origin. Read from Cors:AllowedOrigins;
+    // a trailing slash is removed because the browser sends the Origin header without one.
+    var corsOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+        .Where(o => !string.IsNullOrWhiteSpace(o))
+        .Select(o => o.Trim().TrimEnd('/'))
+        .ToArray();
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(ClientCorsPolicy, policy =>
+        {
+            policy.AllowAnyHeader().AllowAnyMethod();
+
+            // No origins configured: the policy allows none, instead of failing startup or falling back to AllowAnyOrigin.
+            if (corsOrigins.Length > 0)
+            {
+                policy.WithOrigins(corsOrigins);
+            }
+        });
+    });
+
     builder.Services.AddAutoMapper(
         cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"],
         typeof(BookProfile).Assembly);
@@ -141,6 +164,11 @@ try
 
     var app = builder.Build();
 
+    if (corsOrigins.Length == 0)
+    {
+        app.Logger.LogWarning("Cors:AllowedOrigins is not configured; no browser origin is allowed to call the API.");
+    }
+
     // Fail fast in development if a destination member has no source and was not ignored.
     if (app.Environment.IsDevelopment())
     {
@@ -171,7 +199,9 @@ try
 
     app.UseHttpsRedirection();
 
-    // app.UseCors(...) ← שלב 18
+    // After Swagger and before authentication, so a preflight (OPTIONS) is answered without a token
+    // and the 401/403 responses also carry the CORS headers.
+    app.UseCors(ClientCorsPolicy);
 
     // Authentication first: it builds HttpContext.User from the token, which authorization then checks.
     app.UseAuthentication();
